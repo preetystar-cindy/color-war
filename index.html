@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Color War</title>
+<style>
+html,body{margin:0;height:100%;background:#111;overflow:hidden;font-family:sans-serif}
+#ui{position:fixed;left:12px;top:12px;color:#fff;z-index:10}
+canvas{width:100vw;height:100vh;display:block}
+</style>
+</head>
+<body>
+
+<div id="ui">
+Room:<input id="room" value="room1"/>
+WS:<input id="ws" value="wss://color-war-server.onrender.com"/>
+<button id="connect">Connect</button>
+<button id="motion">Enable Motion</button>
+</div>
+
+<canvas id="c"></canvas>
+
+<script>
+const canvas=document.getElementById("c");
+const ctx=canvas.getContext("2d");
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+resize();addEventListener("resize",resize);
+
+let ws,p=0.5,raw=0,power=0;
+function clamp(x){return Math.max(0,Math.min(1,x));}
+
+function connect(){
+ws=new WebSocket(document.getElementById("ws").value);
+ws.onmessage=e=>{const d=JSON.parse(e.data);if(d.type==="state")p=d.p;}
+}
+
+async function enableMotion(){
+if(typeof DeviceOrientationEvent.requestPermission==="function"){
+await DeviceOrientationEvent.requestPermission();
+}
+addEventListener("deviceorientation",e=>{
+const m=Math.sqrt((e.beta||0)**2+(e.gamma||0)**2);
+raw=clamp((m-10)/50);
+});
+}
+
+document.getElementById("connect").onclick=connect;
+document.getElementById("motion").onclick=enableMotion;
+
+function loop(){
+power+= (raw-power)*0.1;
+if(ws)ws.send(JSON.stringify({type:"power",value:power}));
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.fillStyle="#ff4d7d";
+ctx.fillRect(0,0,canvas.width*p,canvas.height);
+ctx.fillStyle="#40c4ff";
+ctx.fillRect(canvas.width*p,0,canvas.width,canvas.height);
+
+requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
