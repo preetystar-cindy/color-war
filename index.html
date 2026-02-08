@@ -58,10 +58,18 @@ function connect(){
     ws.send(JSON.stringify({ type:"join", room: room, id: myId }));
   };
 
-  ws.onmessage = (e)=>{
-    const d = JSON.parse(e.data);
-    if(d.type==="state") p = d.p;
-  };
+ ws.onmessage = (e)=>{
+  const d = JSON.parse(e.data);
+
+  if(d.type === "role"){
+    role = d.role; // "A" or "B"
+  }
+
+  if(d.type === "state"){
+    p = d.p;
+  }
+};
+
 }
 
 
