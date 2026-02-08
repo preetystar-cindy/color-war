@@ -49,16 +49,28 @@ document.getElementById("connect").onclick=connect;
 document.getElementById("motion").onclick=enableMotion;
 
 function loop(){
-power+= (raw-power)*0.1;
-if(ws)ws.send(JSON.stringify({type:"power",value:power}));
+  power += (raw - power) * 0.1;
 
-ctx.clearRect(0,0,canvas.width,canvas.height);
-ctx.fillStyle="#ff4d7d";
-ctx.fillRect(0,0,canvas.width*p,canvas.height);
-ctx.fillStyle="#40c4ff";
-ctx.fillRect(canvas.width*p,0,canvas.width,canvas.height);
+  if(ws && ws.readyState === 1){
+    ws.send(JSON.stringify({type:"power", value: power}));
+  }
 
-requestAnimationFrame(loop);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#ff4d7d";
+  ctx.fillRect(0,0,canvas.width*p,canvas.height);
+  ctx.fillStyle="#40c4ff";
+  ctx.fillRect(canvas.width*p,0,canvas.width,canvas.height);
+
+  // ===== 调试文字 =====
+  ctx.fillStyle="white";
+  ctx.font="16px sans-serif";
+  ctx.fillText("raw = " + raw.toFixed(2), 20, 30);
+  ctx.fillText("power = " + power.toFixed(2), 20, 55);
+  ctx.fillText("ws = " + (ws ? ws.readyState : "null"), 20, 80);
+
+  requestAnimationFrame(loop);
+}
+
 }
 loop();
 </script>
