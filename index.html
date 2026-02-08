@@ -83,10 +83,15 @@ function loop(){
   ctx.fillRect(canvas.width*p,0,canvas.width,canvas.height);
 
   // 调试文字
-  ctx.fillStyle="white";
-  ctx.font="16px sans-serif";
-  ctx.fillText("raw="+raw.toFixed(2),20,30);
-  ctx.fillText("power="+power.toFixed(2),20,55);
+ ctx.fillStyle="white";
+ctx.font="24px sans-serif";
+ctx.textAlign="center";
+
+ctx.fillText("raw = " + raw.toFixed(2), canvas.width/2, canvas.height/2 - 20);
+ctx.fillText("power = " + power.toFixed(2), canvas.width/2, canvas.height/2 + 20);
+
+ctx.textAlign="left"; // 还原对齐方式
+
 
   requestAnimationFrame(loop);
 }
