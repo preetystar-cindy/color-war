@@ -42,10 +42,16 @@ let motionEnabled=false;
 // ===== 关键：监听手机倾斜 =====
 window.addEventListener("deviceorientation",(e)=>{
   if(!motionEnabled) return;
-  const beta=e.beta||0;
-  const gamma=e.gamma||0;
-  const mag=Math.sqrt(beta*beta+gamma*gamma);
-  raw=Math.max(0,Math.min(1,(mag-10)/50));
+ const gamma = e.gamma || 0; // 左右倾斜：右正左负（一般如此）
+
+// role 决定“哪边倾斜才算发力”
+const sideSign = (role === "B") ? +1 : -1; // B(右)要右倾；A(左)要左倾
+
+// 将 “朝自己方向的倾斜” 映射到 0~1
+// 10° 以下当作没发力，60° 接近满力
+const v = (sideSign * gamma - 10) / 50;
+raw = Math.max(0, Math.min(1, v));
+
 },true);
 
 function connect(){
