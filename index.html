@@ -24,6 +24,7 @@ WS:<input id="ws" value="wss://color-war-server.onrender.com"/>
 <script>
 const canvas=document.getElementById("c");
 const ctx=canvas.getContext("2d");
+let role = null; // "A" or "B"
 
 function resize(){
   canvas.width=innerWidth;
