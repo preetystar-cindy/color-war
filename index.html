@@ -48,12 +48,21 @@ window.addEventListener("deviceorientation",(e)=>{
 },true);
 
 function connect(){
-  ws=new WebSocket(document.getElementById("ws").value);
-  ws.onmessage=e=>{
-    const d=JSON.parse(e.data);
-    if(d.type==="state") p=d.p;
+  const room = document.getElementById("room").value.trim() || "room1";
+  const myId = "p" + Math.random().toString(16).slice(2,6);
+
+  ws = new WebSocket(document.getElementById("ws").value);
+
+  ws.onopen = ()=>{
+    ws.send(JSON.stringify({ type:"join", room: room, id: myId }));
+  };
+
+  ws.onmessage = (e)=>{
+    const d = JSON.parse(e.data);
+    if(d.type==="state") p = d.p;
   };
 }
+
 
 // ===== iPhone 权限 =====
 async function enableMotion(){
