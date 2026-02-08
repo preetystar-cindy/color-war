@@ -24,35 +24,56 @@ WS:<input id="ws" value="wss://color-war-server.onrender.com"/>
 <script>
 const canvas=document.getElementById("c");
 const ctx=canvas.getContext("2d");
-function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
-resize();addEventListener("resize",resize);
 
-let ws,p=0.5,raw=0,power=0;
-function clamp(x){return Math.max(0,Math.min(1,x));}
+function resize(){
+  canvas.width=innerWidth;
+  canvas.height=innerHeight;
+}
+resize();
+addEventListener("resize",resize);
+
+let ws=null;
+let p=0.5;
+let raw=0;
+let power=0;
+let motionEnabled=false;
+
+// ===== 关键：监听手机倾斜 =====
+window.addEventListener("deviceorientation",(e)=>{
+  if(!motionEnabled) return;
+  const beta=e.beta||0;
+  const gamma=e.gamma||0;
+  const mag=Math.sqrt(beta*beta+gamma*gamma);
+  raw=Math.max(0,Math.min(1,(mag-10)/50));
+},true);
 
 function connect(){
-ws=new WebSocket(document.getElementById("ws").value);
-ws.onmessage=e=>{const d=JSON.parse(e.data);if(d.type==="state")p=d.p;}
+  ws=new WebSocket(document.getElementById("ws").value);
+  ws.onmessage=e=>{
+    const d=JSON.parse(e.data);
+    if(d.type==="state") p=d.p;
+  };
 }
 
+// ===== iPhone 权限 =====
 async function enableMotion(){
-if(typeof DeviceOrientationEvent.requestPermission==="function"){
-await DeviceOrientationEvent.requestPermission();
-}
-addEventListener("deviceorientation",e=>{
-const m=Math.sqrt((e.beta||0)**2+(e.gamma||0)**2);
-raw=clamp((m-10)/50);
-});
+  try{
+    if(typeof DeviceOrientationEvent!=="undefined" &&
+       typeof DeviceOrientationEvent.requestPermission==="function"){
+       await DeviceOrientationEvent.requestPermission();
+    }
+    motionEnabled=true;
+  }catch(e){}
 }
 
 document.getElementById("connect").onclick=connect;
 document.getElementById("motion").onclick=enableMotion;
 
 function loop(){
-  power += (raw - power) * 0.1;
+  power+=(raw-power)*0.1;
 
-  if(ws && ws.readyState === 1){
-    ws.send(JSON.stringify({type:"power", value: power}));
+  if(ws && ws.readyState===1){
+    ws.send(JSON.stringify({type:"power",value:power}));
   }
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -61,16 +82,13 @@ function loop(){
   ctx.fillStyle="#40c4ff";
   ctx.fillRect(canvas.width*p,0,canvas.width,canvas.height);
 
-  // ===== 调试文字 =====
+  // 调试文字
   ctx.fillStyle="white";
   ctx.font="16px sans-serif";
-  ctx.fillText("raw = " + raw.toFixed(2), 20, 30);
-  ctx.fillText("power = " + power.toFixed(2), 20, 55);
-  ctx.fillText("ws = " + (ws ? ws.readyState : "null"), 20, 80);
+  ctx.fillText("raw="+raw.toFixed(2),20,30);
+  ctx.fillText("power="+power.toFixed(2),20,55);
 
   requestAnimationFrame(loop);
-}
-
 }
 loop();
 </script>
